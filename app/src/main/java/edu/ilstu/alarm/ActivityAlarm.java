@@ -10,6 +10,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 public class ActivityAlarm extends AppCompatActivity {
+    boolean snoozeBool;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,11 +22,15 @@ public class ActivityAlarm extends AppCompatActivity {
         final TextView sentMessage = findViewById(R.id.sentMessage);
         Intent intent = getIntent();
 
+
+
         sentMessage.setText(intent.getStringExtra("MESSAGE"));
-        
+
         snooze.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                snoozeBool = true;
+                mainActivity.putExtra("SNOOZE", snoozeBool);
                 startActivity(mainActivity);
 
             }
@@ -34,7 +39,10 @@ public class ActivityAlarm extends AppCompatActivity {
         cancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                snoozeBool = false;
+                mainActivity.putExtra("SNOOZE", snoozeBool);
                 startActivity(mainActivity);
+
             }
         });
     }

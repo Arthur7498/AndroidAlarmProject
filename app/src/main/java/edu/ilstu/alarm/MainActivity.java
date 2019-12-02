@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -27,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView timeTxt;
     private Button addAlarm;
     private DatePickerDialog.OnDateSetListener mDateSetListener;
+    private EditText optMssg;
 
 
 
@@ -40,14 +42,19 @@ public class MainActivity extends AppCompatActivity {
         mDisplayDate = (TextView) findViewById(R.id.tvDate);
         timeTxt = findViewById(R.id.tvTime);
         addAlarm = findViewById(R.id.add);
+        optMssg = findViewById(R.id.optMessage);
+
+        //put your logic for alarms in here
         addAlarm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 String date;
                 String time;
+                String message;
                 date = mDisplayDate.getText().toString();
                 time = timeTxt.getText().toString();
-
+                message = optMssg.getText().toString();
+                runAlarm(message);
 
             }
         });
@@ -104,6 +111,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    //call this method when you want when the timer runs
+    public void runAlarm( String message) {
+        Intent alarmIntent = new Intent (this,ActivityAlarm.class);
+        alarmIntent.putExtra("MESSAGE",message);
+        startActivity(alarmIntent);
     }
 
 }
