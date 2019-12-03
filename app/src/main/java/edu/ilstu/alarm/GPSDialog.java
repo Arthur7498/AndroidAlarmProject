@@ -12,8 +12,8 @@ public class GPSDialog extends AppCompatDialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle("Alert");
-        builder.setMessage("You have'nt moved");
-        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+        builder.setMessage("You have not moved");
+        builder.setPositiveButton("Dismiss", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
 

@@ -33,7 +33,8 @@ public class GpsAlarmActivity extends AppCompatActivity {
     public void openIntent(int minutes) {
         Intent mainActivity;
         mainActivity = new Intent(this, MainActivity.class);
-        mainActivity.putExtra("TIME", minutes);
+        mainActivity.putExtra("TIME", minutes*1000);
+        startActivity(mainActivity);
 
     }
 }

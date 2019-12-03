@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView mDisplayDate;
     private TextView timeTxt;
     private Button addAlarm;
+    private Button recurs;
     private Button toGps;
     private DatePickerDialog.OnDateSetListener mDateSetListener;
     private EditText optMssg;
@@ -50,6 +51,8 @@ public class MainActivity extends AppCompatActivity {
     double latitude2;
     double longitude2;
     int counter = 0;
+    int time;
+
 
 
 
@@ -58,6 +61,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Intent intent = getIntent();
+        time = intent.getIntExtra("TIME", 20000);
 
 
 
@@ -86,10 +91,10 @@ public class MainActivity extends AppCompatActivity {
                     longitude2 = location.getLongitude();
                     latitude2 = location.getLatitude();
                     if (longitude1 == longitude2 && latitude1 == latitude2) {
-                        System.out.println("same");
-                    }
-                    else
                         openGpsDialog();
+                    }
+
+
                 }
 
 
@@ -117,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        locationManager.requestLocationUpdates("gps", 1000,0, locationListener);
+        locationManager.requestLocationUpdates("gps", time,0, locationListener);
 
 //--------------------------------------------------------------------------------------------------------------
 
@@ -129,6 +134,14 @@ public class MainActivity extends AppCompatActivity {
         addAlarm = findViewById(R.id.add);
         optMssg = findViewById(R.id.optMessage);
         toGps = findViewById(R.id.goToGps);
+        recurs = findViewById(R.id.recursAlarm);
+
+        recurs.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                
+            }
+        });
 
 
         toGps.setOnClickListener(new View.OnClickListener() {
