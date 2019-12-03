@@ -2,13 +2,14 @@ package edu.ilstu.alarm;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
 public class GpsAlarmActivity extends AppCompatActivity {
-    int minutes = 2;
+
 
 
     @Override
@@ -22,9 +23,17 @@ public class GpsAlarmActivity extends AppCompatActivity {
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                int minutes;
                 minutes = Integer.parseInt(gpsTxt.getText().toString());
+                openIntent(minutes);
 
             }
         });
+    }
+    public void openIntent(int minutes) {
+        Intent mainActivity;
+        mainActivity = new Intent(this, MainActivity.class);
+        mainActivity.putExtra("TIME", minutes);
+
     }
 }
