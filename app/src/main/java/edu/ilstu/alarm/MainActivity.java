@@ -2,15 +2,27 @@ package edu.ilstu.alarm;
 
 
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.app.TimePickerDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -23,13 +35,21 @@ import android.widget.Toast;
 import java.sql.Date;
 import java.util.Calendar;
 
+
 public class MainActivity extends AppCompatActivity {
+    private LocationManager locationManager;
+    private LocationListener locationListener;
     private TextView mDisplayDate;
     private TextView timeTxt;
     private Button addAlarm;
+    private Button toGps;
     private DatePickerDialog.OnDateSetListener mDateSetListener;
     private EditText optMssg;
-
+    double latitude1;
+    double longitude1;
+    double latitude2;
+    double longitude2;
+    int counter = 0;
 
 
 
@@ -39,10 +59,86 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+            if(ActivityCompat.shouldShowRequestPermissionRationale(this,Manifest.permission.ACCESS_FINE_LOCATION)){
+
+            }else{
+                ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION},10);
+            }
+        }
+
+
+        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        locationListener = new LocationListener() {
+
+
+
+            @Override
+            public void onLocationChanged(Location location) {
+                if (counter == 0) {
+                    longitude1 = location.getLongitude();
+                    latitude1 = location.getLatitude();
+                    counter++;
+                }
+                else {
+                    longitude2 = location.getLongitude();
+                    latitude2 = location.getLatitude();
+                    if (longitude1 == longitude2 && latitude1 == latitude2) {
+                        System.out.println("same");
+                    }
+                    else
+                        openGpsDialog();
+                }
+
+
+                System.out.println(longitude1);
+                System.out.println(longitude2);
+
+
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+
+            }
+
+            @RequiresApi(api = Build.VERSION_CODES.M)
+            @Override
+            public void onProviderDisabled(String provider) {
+                Intent turnOnGPS = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                startActivity(turnOnGPS);
+            }
+        };
+
+        locationManager.requestLocationUpdates("gps", 1000,0, locationListener);
+
+//--------------------------------------------------------------------------------------------------------------
+
+
+
+
         mDisplayDate = (TextView) findViewById(R.id.tvDate);
         timeTxt = findViewById(R.id.tvTime);
         addAlarm = findViewById(R.id.add);
         optMssg = findViewById(R.id.optMessage);
+        toGps = findViewById(R.id.goToGps);
+
+
+        toGps.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                goToGps();
+            }
+        });
+
+
 
         //put your logic for alarms in here
         addAlarm.setOnClickListener(new View.OnClickListener() {
@@ -54,7 +150,10 @@ public class MainActivity extends AppCompatActivity {
                 date = mDisplayDate.getText().toString();
                 time = timeTxt.getText().toString();
                 message = optMssg.getText().toString();
-                runAlarm(message);
+                makeToast();
+                openAlarmDialog(message);
+               // openGpsDialog();
+
 
             }
         });
@@ -113,12 +212,33 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    //call this method when you want when the timer runs
-    public void runAlarm( String message) {
-        Intent alarmIntent = new Intent (this,ActivityAlarm.class);
-        alarmIntent.putExtra("MESSAGE",message);
-        startActivity(alarmIntent);
+
+    public void goToGps() {
+        Intent mainActivity;
+        mainActivity = new Intent(this, GpsAlarmActivity.class);
+        startActivity(mainActivity);
+
     }
+
+    public void makeToast() {
+        Toast. makeText(getApplicationContext(),"Alarm Added",Toast. LENGTH_SHORT).show();
+
+    }
+
+    public void openGpsDialog() {
+        GPSDialog textDialog = new GPSDialog();
+
+        textDialog.show(getSupportFragmentManager(), "example dialog");
+    }
+
+    public void openAlarmDialog(String message) {
+        AlarmDialog textDialog = new AlarmDialog(message);
+
+        textDialog.show(getSupportFragmentManager(), "example dialog");
+    }
+
+
+
 
 }
 
