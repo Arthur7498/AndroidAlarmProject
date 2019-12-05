@@ -2,17 +2,12 @@ package edu.ilstu.alarm;
 
 
 
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
 import android.Manifest;
+import android.app.AlarmManager;
 import android.app.DatePickerDialog;
-import android.app.Dialog;
+import android.app.PendingIntent;
 import android.app.TimePickerDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -32,9 +27,12 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
-import java.sql.Date;
-import java.util.Calendar;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
     private LocationManager locationManager;
@@ -44,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private Button addAlarm;
     private Button recurs;
     private Button toGps;
+    private Button timerButton;
     private DatePickerDialog.OnDateSetListener mDateSetListener;
     private EditText optMssg;
     double latitude1;
@@ -52,10 +51,8 @@ public class MainActivity extends AppCompatActivity {
     double longitude2;
     int counter = 0;
     int time;
-
-
-
-
+    private AlarmManager alarmManager;
+    Calendar cal = Calendar.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +61,9 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = getIntent();
         time = intent.getIntExtra("TIME", 20000);
 
-
+        if(alarmManager == null) {
+            alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        }
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
             if(ActivityCompat.shouldShowRequestPermissionRationale(this,Manifest.permission.ACCESS_FINE_LOCATION)){
@@ -78,8 +77,6 @@ public class MainActivity extends AppCompatActivity {
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         locationListener = new LocationListener() {
 
-
-
             @Override
             public void onLocationChanged(Location location) {
                 if (counter == 0) {
@@ -91,24 +88,17 @@ public class MainActivity extends AppCompatActivity {
                     longitude2 = location.getLongitude();
                     latitude2 = location.getLatitude();
                     if (longitude1 == longitude2 && latitude1 == latitude2) {
-                        openGpsDialog();
+                       // TODO
+                        //  uncomment openGpsDialog();
                     }
-
-
                 }
-
-
                 System.out.println(longitude1);
                 System.out.println(longitude2);
-
-
             }
 
             @Override
             public void onStatusChanged(String provider, int status, Bundle extras) {
-
             }
-
             @Override
             public void onProviderEnabled(String provider) {
 
@@ -134,6 +124,7 @@ public class MainActivity extends AppCompatActivity {
         addAlarm = findViewById(R.id.add);
         optMssg = findViewById(R.id.optMessage);
         toGps = findViewById(R.id.goToGps);
+        timerButton = (Button)findViewById(R.id.TimerButton);
         recurs = findViewById(R.id.recursAlarm);
 
         recurs.setOnClickListener(new View.OnClickListener() {
@@ -143,6 +134,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        timerButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent timer = new Intent(MainActivity.this,Timer.class);
+                startActivity(timer);
+            }
+        });
 
         toGps.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -157,31 +155,35 @@ public class MainActivity extends AppCompatActivity {
         addAlarm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String date;
-                String time;
-                String message;
-                date = mDisplayDate.getText().toString();
-                time = timeTxt.getText().toString();
-                message = optMssg.getText().toString();
+
+                String message = optMssg.getText().toString();
                 makeToast();
-                openAlarmDialog(message);
-               // openGpsDialog();
+                try {
 
 
+                    Intent intent = new Intent(MainActivity.this, AlarmReceiver.class);
+                    PendingIntent alarmIntent = PendingIntent.getBroadcast(getApplicationContext(), 34304, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                    Log.d("alarmapp", "System time " + System.currentTimeMillis());
+                    Log.d("alarmapp", "Calendar " + cal.getTimeInMillis());
+                    Log.d("alarmapp", "Should fire in " + (cal.getTimeInMillis() - System.currentTimeMillis()));
+                    alarmManager.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), alarmIntent);
+                } catch(Exception e) {
+                    Log.e("alarmapp","exp", e);
+                }
             }
         });
-
 
 
         mDisplayDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Calendar cal = Calendar.getInstance();
+
                 int year = cal.get(Calendar.YEAR);
                 int month = cal.get(Calendar.MONTH);
                 int day = cal.get(Calendar.DAY_OF_MONTH);
 
-                DatePickerDialog dialog = new DatePickerDialog(MainActivity.this, android.R.style.Theme_Holo_Light_Dialog_MinWidth, mDateSetListener, year, month, day);
+                DatePickerDialog dialog = new DatePickerDialog(MainActivity.this, android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                        mDateSetListener, year, month, day);
                 dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
                 dialog.show();
 
@@ -195,10 +197,17 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("MainActivity", "onDateSet: mm/dd/yyy: " + month + "/" + day + "/" + year);
 
                 String date = month + "/" + day + "/" + year;
+                cal.set(Calendar.YEAR, year);
+                cal.set(Calendar.MONTH, month -1);
+                cal.set(Calendar.DAY_OF_MONTH, day);
+                cal.set(Calendar.SECOND, 0);
+
                 mDisplayDate.setText(date);
             }
         };
 
+        //intent.putextra
+        //intent.getextra alarm
 
 
 
@@ -207,7 +216,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // TODO Auto-generated method stub
-                Calendar cal = Calendar.getInstance();
+
                 int hour = cal.get(Calendar.HOUR_OF_DAY);
                 int minute = cal.get(Calendar.MINUTE);
                 TimePickerDialog mTimePicker;
@@ -215,6 +224,8 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
                         timeTxt.setText( selectedHour + ":" + selectedMinute);
+                        cal.set(Calendar.HOUR, selectedHour);
+                        cal.set(Calendar.MINUTE, selectedMinute);
                     }
                 }, hour, minute, true);
                 mTimePicker.setTitle("Select Time");
@@ -224,8 +235,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
-
-
     public void goToGps() {
         Intent mainActivity;
         mainActivity = new Intent(this, GpsAlarmActivity.class);
@@ -235,7 +244,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void makeToast() {
         Toast. makeText(getApplicationContext(),"Alarm Added",Toast. LENGTH_SHORT).show();
-
     }
 
     public void openGpsDialog() {
@@ -246,12 +254,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void openAlarmDialog(String message) {
         AlarmDialog textDialog = new AlarmDialog(message);
-
         textDialog.show(getSupportFragmentManager(), "example dialog");
     }
-
-
-
-
 }
-
